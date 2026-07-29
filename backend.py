@@ -1018,6 +1018,13 @@ def ajustar_melhor_desempenho():
 	}
 	Set-ItemProperty $Cortana3 HarvestContacts -Value 0""")
 
+        #Disables scheduled tasks that are considered unnecessary 
+    
+    yield "Desativiando serviços desnecessários do Agendador de Tarefas"
+    tasks = ["XblGameSaveTaskLogon", "XblGameSaveTask", "Consolidator", "UsbCeip", "DmClient", "DmClientOnScenarioDownload"]
+    for task in tasks:
+        yield from ps(f'Get-ScheduledTask  {task} | Disable-ScheduledTask')
+
     yield "Abrindo o Windows Update..."
     yield from cmd("start ms-settings:windowsupdate", timeout=60)
     yield "✅ Ajuste completo concluído!"

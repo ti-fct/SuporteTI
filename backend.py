@@ -1026,7 +1026,10 @@ def ajustar_melhor_desempenho():
         yield from ps(f'Get-ScheduledTask  {task} | Disable-ScheduledTask')
 
     yield "Desativa Web Search do Menu Iniciar"
-    yield from ps('Set-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" DisableWebSearch -Value 1')
+    yield from ps(r'Set-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" DisableWebSearch -Value 1')
+
+    yield "Desativa FeedBack Experience"
+    yield from ps(r'Set-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AdvertisingInfo" Enabled -Value 0')
 
     yield "Abrindo o Windows Update..."
     yield from cmd("start ms-settings:windowsupdate", timeout=60)

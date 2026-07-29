@@ -995,6 +995,29 @@ def ajustar_melhor_desempenho():
     yield from ps(r'reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\ActivityHistory" /v PublishUserActivities /t REG_DWORD /d 0 /f')
     yield from ps(r'reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\ActivityHistory" /v UploadUserActivities /t REG_DWORD /d 0 /f')
 
+    yield "Desativando exibição dos ultimos arquivos e fotos ..."
+    yield from ps(r' Remove-Item "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HomeFolderDesktop\NameSpace\DelegateFolders\{3134ef9c-6b18-4996-ad04-ed5912e00eb5}" -Recurse')
+    yield from ps(r' Remove-Item "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HomeFolderDesktop\NameSpace\DelegateFolders\{3936E9E4-D92C-4EEE-A85A-BC16D5EA0819}" -Recurse')
+
+    yield "Desativando Cortana..."
+    yield from ps(r"""
+    $Cortana1 = "HKCU:\SOFTWARE\Microsoft\Personalization\Settings"
+    $Cortana2 = "HKCU:\SOFTWARE\Microsoft\InputPersonalization"
+    $Cortana3 = "HKCU:\SOFTWARE\Microsoft\InputPersonalization\TrainedDataStore"
+	If (!(Test-Path $Cortana1)) {
+		New-Item $Cortana1
+	}
+	Set-ItemProperty $Cortana1 AcceptedPrivacyPolicy -Value 0 
+	If (!(Test-Path $Cortana2)) {
+		New-Item $Cortana2
+	}
+	Set-ItemProperty $Cortana2 RestrictImplicitTextCollection -Value 1 
+	Set-ItemProperty $Cortana2 RestrictImplicitInkCollection -Value 1 
+	If (!(Test-Path $Cortana3)) {
+		New-Item $Cortana3
+	}
+	Set-ItemProperty $Cortana3 HarvestContacts -Value 0""")
+
     yield "Abrindo o Windows Update..."
     yield from cmd("start ms-settings:windowsupdate", timeout=60)
     yield "✅ Ajuste completo concluído!"
@@ -1033,9 +1056,28 @@ def remover_aplicativos_indesejados():
         "Sticky Notes": ["*StickyNotes*"],
         "Skype": ["*SkypeApp*"],
         "Feedback Hub": ["*FeedbackHub*"],
+        "Feedback Hub 2": ["*Microsoft.WindowsFeedbackHub*"],
         "Maps": ["*WindowsMaps*"],
         "Solitaire": ["*SolitaireCollection*"],
+        "Solitaire 2": ["*Microsoft.MicrosoftSolitaireCollection*"],
         "Outlook": ["*Outlook*"],
+        "GetHelp":["*Microsoft.GetHelp*"],
+        "Get Started":["*Microsoft.Getstarted*"],
+        "Messaging":["*Microsoft.Messaging*"],
+        "3D Viewer":["*Microsoft.Microsoft3DViewer*"],
+        "Office Hub":["*Microsoft.MicrosoftOfficeHub*"],
+        "Speed Test":["*Microsoft.NetworkSpeedTest*"],
+        "Sway":["*Microsoft.Office.Sway*"],
+        "People":["*Microsoft.People*"],
+        "Print 3D":["*Microsoft.Print3D*"],
+        "Alarms":["*Microsoft.WindowsAlarms*"],
+        "Communications apps":["*microsoft.windowscommunicationsapps*"],
+        "Maps":["*Microsoft.WindowsMaps*"],
+        "Sound Recorder":["*Microsoft.WindowsSoundRecorder*"],
+        "Zune Music ":["*Microsoft.ZuneMusic*"],
+        "Zune Video":["*Microsoft.ZuneVideo*"],
+        "Candy Crush":["*CandyCrush*"],
+        "Spotify":["*Spotify*"]
     }
 
     yield f"{len(apps_para_remover)} aplicativos/categorias na lista de remoção."

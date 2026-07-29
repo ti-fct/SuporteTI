@@ -944,7 +944,7 @@ def ajustar_melhor_desempenho():
     yield "Serviços do Xbox desativados com sucesso."
 
     yield "Desativando serviços adicionais..."
-    for s in ["WpcSvc", "WpcMonSvc", "DiagTrack", "DusmSvc", "GameInputSvc", "ScPolicySvc", "WbioSrvc", "BDESVC", "SCardSvr", "icssvc", "WerSvc", "SensorService", "PhoneSvc", "SysMain"]:
+    for s in ["WpcSvc", "WpcMonSvc", "DiagTrack", "dmwappushservice", "DusmSvc", "GameInputSvc", "ScPolicySvc", "WbioSrvc", "BDESVC", "SCardSvr", "icssvc", "WerSvc", "SensorService", "PhoneSvc", "SysMain"]:
         yield from ps(f'Stop-Service {s} -Force; Set-Service {s} -StartupType Disabled')
     yield "Todos os serviços adicionais foram desativados com sucesso."
 
@@ -1024,6 +1024,9 @@ def ajustar_melhor_desempenho():
     tasks = ["XblGameSaveTaskLogon", "XblGameSaveTask", "Consolidator", "UsbCeip", "DmClient", "DmClientOnScenarioDownload"]
     for task in tasks:
         yield from ps(f'Get-ScheduledTask  {task} | Disable-ScheduledTask')
+
+    yield "Desativa Web Search do Menu Iniciar"
+    yield from ps('Set-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" DisableWebSearch -Value 1')
 
     yield "Abrindo o Windows Update..."
     yield from cmd("start ms-settings:windowsupdate", timeout=60)

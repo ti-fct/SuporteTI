@@ -619,19 +619,25 @@ def aplicar_tema_fct(caminho_tema):
         yield "Ajustando ícones da área de trabalho para tamanho médio..."
         yield from ps(r'Set-ItemProperty HKU:\TempHive\Software\Microsoft\Windows\Shell\Bags\1\Desktop IconSize 32')
 
+        yield from ps(r'reg add "HKU\TempHive\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v ShowTaskViewButton /t REG_DWORD /d 0 /f')
+
+        yield from ps(r'reg add "HKU\TempHive\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v TaskbarDa /t REG_DWORD /d 0 /f')
+
+        yield from ps(r'reg add "HKU\TempHive\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Start_ShowRecommendations /t REG_DWORD /d 0 /f')
+
         yield from ps(r'reg unload HKU\TempHive')
         yield f"Configurações aplicadas para o usuário {usuario}."
 
     yield "Definindo wallpaper para 'Ajustar'..."
     comandoWallpaperAjustar = "Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name WallpaperStyle -Value 6; Set-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name TileWallpaper -Value 0"
-    yield from executar_comando_powershell(comandoWallpaperAjustar)
+    yield from ps(comandoWallpaperAjustar)
 
     yield "Definindo imagem da tela de bloqueio igual ao wallpaper..."
     comandoLockScreen = fr"""
     $wallpaper = (Get-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name Wallpaper).Wallpaper
-    Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Lock Screen" -Name Path -Value $wallpaper
+    reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Personalization" /v LockScreenImage /t REG_SZ /d "$wallpaper" /f
     """
-    yield from executar_comando_powershell(comandoLockScreen)
+    yield from ps(comandoLockScreen)
 
 def aplicar_gpos_fct(caminho_base_gpo):
     """Aplica as políticas de grupo (GPOs) da FCT usando lgpo.exe."""
@@ -703,6 +709,7 @@ def iniciar_limpeza_sistema(url_ferramenta):
         for usuario in usuarios:
             yield f"🧹 Limpando pastas do usuário {usuario}..."
             user_dir = fr"C:\Users\{usuario}"
+            user_recycle = fr"C:\Users\{usuario}\$Recycle.Bin"
 
             if not os.path.exists(user_dir):
                 yield f"⚠️ Usuário {usuario} não encontrado, pulando..."
@@ -710,7 +717,8 @@ def iniciar_limpeza_sistema(url_ferramenta):
 
             yield from executar_comando_powershell(fr'Remove-Item -Path "{user_dir}\AppData\Local\Temp\*" -Recurse -Force -ErrorAction SilentlyContinue')
             yield from executar_comando_powershell(fr'Remove-Item -Path "{user_dir}\AppData\Roaming\Microsoft\Windows\Recent\*" -Recurse -Force -ErrorAction SilentlyContinue')
-            yield from executar_comando_powershell(fr'Clear-RecycleBin -Force -ErrorAction SilentlyContinue')
+            yield from executar_comando_powershell(fr'Clear-RecycleBin -Force -ErrorAction SilentlyContinue')           
+            yield from executar_comando_powershell(fr'Remove-Item -Path "{user_recycle}\*" -Recurse -Force -ErrorAction SilentlyContinue')
 
         yield "🧹 Apagando arquivos das pastas Temp e Prefetch globais..."
         yield from executar_comando_powershell(r'Remove-Item -Path "C:\Windows\Temp\*" -Recurse -Force -ErrorAction SilentlyContinue')
@@ -920,6 +928,7 @@ def ajustar_melhor_desempenho():
         yield from ps(r'Set-ItemProperty HKU:\TempHive\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced Start_NotifyNewApps 0')
         yield from ps(r'Set-ItemProperty HKU:\TempHive\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced Start_ShowFrequentPrograms 0')
         yield from ps(r'Set-ItemProperty HKU:\TempHive\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced Start_ShowRecommendations 0')
+        yield from ps(r'Set-ItemProperty HKU:\TempHive\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager SubscribedContent-338388Enabled 0')
 
         yield "Desativando recomendações e ofertas..."
         yield from ps(r'Set-ItemProperty HKU:\TempHive\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager SubscribedContent-338389Enabled 0')
